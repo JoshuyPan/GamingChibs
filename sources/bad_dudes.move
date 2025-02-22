@@ -29,6 +29,11 @@ module chibs::bad_dudes{
         bdude.atk
     }
 
+    //Setters
+    public fun lose_hp(bdude: &mut BadDude, amount: u64){
+        bdude.hp = bdude.hp - amount;
+    }
+
     //Helper
     public fun destroy_bad_dude(bdude: BadDude){
         let BadDude{

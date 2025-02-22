@@ -134,6 +134,10 @@ module chibs::chib{
         chib.victories
     }
 
+    public fun get_attack(chib: &Chib): u64{
+        chib.atk
+    }
+
     public fun get_rank(chib: &Chib): std::ascii::String{
         chib.rank
     }
@@ -148,8 +152,8 @@ module chibs::chib{
     }
 
 
-    //private
-    fun check_level(chib: &mut Chib){
+    //Helper
+    public(package) fun check_level(chib: &mut Chib){
         if(chib.xp < 500){
             chib.lvl = 1;
             return
@@ -168,7 +172,7 @@ module chibs::chib{
         }
     }
 
-    fun check_state(chib: &mut Chib){
+    public(package) fun check_state(chib: &mut Chib){
         if(chib.hp > 0 && chib.mana > 0){
             chib.state = b"Alive".to_ascii_string();
         }else if(chib.hp > 0 && chib.mana == 0){
@@ -178,7 +182,7 @@ module chibs::chib{
         }
     }
 
-    fun check_rank(chib: &mut Chib){
+    public(package) fun check_rank(chib: &mut Chib){
         if(chib.victories < 3){
             chib.rank = b"Rookie".to_ascii_string();
             return

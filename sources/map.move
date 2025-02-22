@@ -45,11 +45,15 @@ module chibs::map{
         map.b_dudes.length()
     }
 
-    public fun get_dude(map: &mut Map, index: u64): chibs::bad_dudes::BadDude{
+    public fun get_dude(map: &mut Map, index: u64): &mut chibs::bad_dudes::BadDude{
+        map.b_dudes.borrow_mut(index)
+    }
+
+    public fun remove_dude(map: &mut Map, index: u64): chibs::bad_dudes::BadDude{
         map.b_dudes.remove(index)
     }
 
-    public fun get_map_is_open(map: &Map): bool{
+    public fun get_map_is_open(map: &mut Map): bool{
         map.isOpen
     }
 
@@ -58,9 +62,17 @@ module chibs::map{
         map.owner = guildName
     }
 
+    public fun insert_dude(map: &mut Map, dude: chibs::bad_dudes::BadDude){
+        map.b_dudes.push_back(dude);
+    }
+
     public fun destroy_bad_dude(map: &mut Map, dudeIndex: u64){
         let dude = map.b_dudes.remove(dudeIndex);
         dude.destroy_bad_dude()
+    }
+
+    public fun set_map_is_open(map: &mut Map, state: bool){
+        map.isOpen = state;
     }
 
 }

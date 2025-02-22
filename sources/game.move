@@ -14,6 +14,10 @@ module chibs::game{
     const YOU_ARE_NOT_GUILD_ADMIN: u64 = 5;
     #[error]
     const USER_IS_NOT_GUILD_MEMBER: u64 = 6;
+    #[error]
+    const YOU_HAVE_NO_GUILD: u64 = 7;
+    #[error]
+    const EURASIA_IS_CLOSED: u64 = 8;
 
 
     public struct GameAdmin has key {
@@ -136,7 +140,27 @@ module chibs::game{
         newMember.set_guild_name(guild.get_guild_name());
     }
 
+    public entry fun figth_eurasia
+    (
+        admin: &mut GameAdmin,
+        chib: &mut chibs::chib::Chib,
+        ctx: &mut TxContext
+    ){
+        let isGuilded = chib.get_have_guild();
+        assert!(isGuilded, YOU_HAVE_NO_GUILD);
+        let mut iterator = 0;
 
+        while(iterator < 2){
+            let dude = admin.eurasia.get_dude(iterator);
+            let success = figth(chib, dude);
+            if(success){
+                iterator = iterator + 1
+            }else{
+                chib.check_state();
+                return
+            }
+        }
+    }
 
     //Getters
     public fun get_founder(admin: &GameAdmin): address{
@@ -156,11 +180,37 @@ module chibs::game{
     }
 
     //Private
-
     fun is_registred(admin: &GameAdmin, ctx: &mut TxContext){
         let sender = tx_context::sender(ctx);
         let isRegistred = admin.chibs.contains(&sender);
         assert!(isRegistred == true, SHOULD_BE_REGISTRED_FIRST);
+    }
+
+    fun remove_and_destroy_dude(admin: &mut GameAdmin, dudeIndex: u64){
+        admin.eurasia.destroy_bad_dude(dudeIndex);
+    }
+
+    //Fighting
+    ///@dev -> this function returns true if chib won. Otherwise returns false
+    fun figth(chib: &mut chibs::chib::Chib, dude: &mut chibs::bad_dudes::BadDude): bool{
+        let chibHp = chib.get_hp();
+        let chibAtk = chib.get_attack();
+        let dudeHp = dude.get_hp();
+        let dudeAtk = dude.get_atk();
+
+        while(dude.get_hp() > 0){
+            dude.lose_hp(chibAtk);
+            chib.lose_hp(dudeAtk);
+            if(chib.get_hp() <= 0){
+                chib.check_state();
+                return false
+            }
+        };
+        chib.give_exp(chibHp + dudeAtk);
+        chib.add_victory();
+        chib.check_state();
+        chib.check_level();
+        return true    
     }
 
 }
