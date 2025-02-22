@@ -92,8 +92,36 @@ module chibs::chib{
     }
 
     //Getters
+    public fun get_name(chib: &Chib): std::ascii::String {
+        chib.name
+    }
+
     public fun get_is_alive(chib: &Chib): bool{
         chib.state != b"Dead".to_ascii_string()
+    }
+
+    public fun get_level(chib: &Chib): u64 {
+        chib.lvl
+    }
+
+    public fun get_xp(chib: &Chib): u64 {
+        chib.xp
+    }
+
+    public fun get_hp(chib: &Chib): u64{
+        chib.xp
+    }
+
+    public fun get_mana(chib: &Chib): u64{
+        chib.mana
+    }
+
+    public fun get_victories(chib: &Chib): u64{
+        chib.victories
+    }
+
+    public fun get_rank(chib: &Chib): std::ascii::String{
+        chib.rank
     }
 
     public fun get_have_guild(chib: &Chib): bool{
