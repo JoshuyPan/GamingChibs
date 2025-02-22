@@ -67,14 +67,13 @@ module chibs::game{
         ctx: &mut TxContext
     )
     {
-        //Check if the user is registred
         let sender = tx_context::sender(ctx);
-        let isRegistred = admin.chibs.contains(&sender);
-        assert!(isRegistred == true, SHOULD_BE_REGISTRED_FIRST);
+        //Check if the sender is registred
+        is_registred(admin, ctx);
 
-        //Check if the user if the user already have a guild
+        //Check if the user already have a guild
         let chib = admin.chibs.get_mut(&sender);
-        assert!(!chib.get_guild_is_member(), ALREADY_HAVE_A_GUILD);
+        assert!(!chib.get_have_guild(), ALREADY_HAVE_A_GUILD);
 
         //Check if the guild name is already taken
         let mut iterator = 1;
@@ -89,15 +88,19 @@ module chibs::game{
 
         // Update guild created, creates the new guild, push the guild to the vecmap, sends the adminCap and membership to the sender
         admin.guildsCreated = admin.guildsCreated + 1;
-        let (guild, guildAdmin, guildMember) = chibs::guild::create_guild(admin.guildsCreated, name, ctx);
+        let guild = chibs::guild::create_guild(admin.guildsCreated, name, ctx);
 
         chib.set_guild_name(name);
+        chib.set_guild_id(admin.guildsCreated);
 
         admin.guilds.insert(admin.guildsCreated, guild);
-        chib.add_guild_emblem(guildMember);
-        chib.add_guild_admin_emblem(guildAdmin);
     }
 
+    //Start HERE TOMORROW
+    // - sender is admin of the guild
+    // - target is member of the guild
+    // - remove ownership from the sender
+    // - give the ownership to the other one
     public entry fun transfer_guild_ownership(
         admin: &mut GameAdmin,
         newGuildAdmin: address,
@@ -105,20 +108,46 @@ module chibs::game{
     ){
         //check if the sender is the admin of the guild
         let sender = tx_context::sender(ctx);
-        let chibAdmin = admin.chibs.get_mut(&sender);
-        let chibNewAdmin = admin.chibs.get_mut(&newGuildAdmin);
-        let isAdmin = chibAdmin.get_guild_is_admin();
-        assert!(isAdmin, YOU_ARE_NOT_GUILD_ADMIN);
+        let chibAdmin = admin.chibs.get(&sender);
+        let guild = admin.guilds.get_mut(&chibAdmin.get_guild_id());
+        let guildAdmin = guild.get_guild_admin();
+        assert!(sender == guildAdmin, YOU_ARE_NOT_GUILD_ADMIN);
 
-        let emblem = chibAdmin.remove_guild_admin_emblem();
-        
-        //check if the new admin is a member of the guild
-        let guild = admin.guilds.get_mut(&emblem.get_guild_id());
-        let isMember = guild.get_address_is_member(&newGuildAdmin);
+        //check address given is member of the guild
+        let isMember = guild.get_address_is_member(newGuildAdmin);
         assert!(isMember, USER_IS_NOT_GUILD_MEMBER);
 
-        guild.set_new_owner(newGuildAdmin);
-        chibNewAdmin.add_guild_admin_emblem(emblem);
+        guild.set_new_owner(newGuildAdmin, ctx);
+    }
+
+    public entry fun add_guild_member(
+        admin: &mut GameAdmin,
+        guy: address,
+        ctx: &mut TxContext
+    ){
+        let sender = tx_context::sender(ctx);
+        let senderChib = admin.chibs.get_mut(&sender);
+        assert!(senderChib.get_have_guild(), USER_IS_NOT_GUILD_MEMBER);
+        let guild = admin.guilds.get_mut(&senderChib.get_guild_id());
+        let newMember = admin.chibs.get_mut(&guy);
+        assert!(!newMember.get_have_guild(), ALREADY_HAVE_A_GUILD);
+
+        guild.add_new_member(guy, ctx);
+        newMember.set_guild_id(guild.get_guild_id());
+        newMember.set_guild_name(guild.get_guild_name());
+    }
+
+
+
+    //Getters
+    
+
+    //Private
+
+    fun is_registred(admin: &GameAdmin, ctx: &mut TxContext){
+        let sender = tx_context::sender(ctx);
+        let isRegistred = admin.chibs.contains(&sender);
+        assert!(isRegistred == true, SHOULD_BE_REGISTRED_FIRST);
     }
 
 }

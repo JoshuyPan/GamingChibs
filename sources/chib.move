@@ -4,18 +4,20 @@ module chibs::chib{
 
     //Errors
     #[error]
-    const YOU_ALREADY_HAVE_GUILD: u64 = 1;
+    const CHIB_IS_DEAD: u64 = 1;
 
     public struct Chib has key, store {
         id: UID,
         name: std::ascii::String,
+        state: std::ascii::String,
         lvl: u64,
+        xp: u64,
         hp: u64,
         mana: u64,
-        energy: u64,
         victories: u64,
         rank: std::ascii::String,
         guild: option::Option<std::ascii::String>,
+        guildId: u64,
         owner: address, 
     }
 
@@ -29,79 +31,122 @@ module chibs::chib{
         Chib{
             id: object::new(ctx),
             name: name,
+            state: b"Alive".to_ascii_string(),
             lvl: 1,
+            xp: 0,
             hp: 500,
             mana: 250,
-            energy: 100,
             victories: 0,
             rank: b"Rookie".to_ascii_string(),
             guild: option::none<std::ascii::String>(),
+            guildId: 0,
             owner: tx_context::sender(ctx)
         }
     }
 
-    public fun add_guild_emblem(
-        chib: &mut Chib,
-        emblem: chibs::guild::GuildMember
-    ){
-        let name = b"guild_emblem".to_ascii_string();
-        let haveGuild = sui::dynamic_object_field::exists_(&mut chib.id, name);
-        assert!(haveGuild == false, YOU_ALREADY_HAVE_GUILD);
-        sui::dynamic_object_field::add(&mut chib.id, name, emblem);
-    }
-
-    public fun add_guild_admin_emblem(
-        chib: &mut Chib,
-        emblem: chibs::guild::GuildAdminCap
-    ){
-        let name = b"guild_admin_emblem".to_ascii_string();
-        let haveGuild = sui::dynamic_object_field::exists_(&mut chib.id, name);
-        assert!(haveGuild == false, YOU_ALREADY_HAVE_GUILD);
-        sui::dynamic_object_field::add(&mut chib.id, name, emblem);
-    }
-
-    public fun remove_guild_admin_emblem(
-        chib: &mut Chib
-    ): chibs::guild::GuildAdminCap
-    {
-        let name = b"guild_admin_emblem".to_ascii_string();
-        sui::dynamic_object_field::remove(&mut chib.id, name)
-    }
-
-    public fun destroy_guild_admin_emblem(
-        chib: &mut Chib
-    )
-    {
-        let name = b"guild_admin_emblem".to_ascii_string();
-        let emblem = sui::dynamic_object_field::remove(&mut chib.id, name);
-        chibs::guild::destroy_guild_admin_emblem(emblem);
-    }
-
-    public fun destroy_guild_emblem(
-        chib: &mut Chib
-    )
-    {
-        let name = b"guild_emblem".to_ascii_string();
-        let emblem = sui::dynamic_object_field::remove(&mut chib.id, name);
-        chibs::guild::destroy_guild_emblem(emblem);
-    }
-
     //Setters
+    public fun change_name(chib: &mut Chib, newName: std::ascii::String){
+        chib.name = newName;
+    }
+
+    public fun give_exp(chib: &mut Chib, amount: u64){
+        check_state(chib);
+        assert!(get_is_alive(chib), CHIB_IS_DEAD);
+        chib.xp = chib.xp + amount;
+        check_level(chib);
+    }
+
+    public fun gain_hp(chib: &mut Chib, amount: u64){
+        chib.hp = chib.hp + amount;
+    }
+
+    public fun lose_hp(chib: &mut Chib, amount: u64){
+        chib.hp = chib.hp - amount;
+        check_state(chib);
+    }
+
+    public fun gain_mana(chib: &mut Chib, amount: u64){
+        chib.mana = chib.mana + amount;
+    }
+
+    public fun lose_mana(chib: &mut Chib, amount: u64){
+        chib.mana = chib.mana - amount;
+        check_state(chib);
+    }
+
     public fun set_guild_name(chib: &mut Chib, name: std::ascii::String){
         chib.guild.fill(name);
     }
 
-    //Getters
-    public fun get_guild_is_member(chib: &mut Chib): bool
-    {
-        let name = b"guild_emblem".to_ascii_string();
-        sui::dynamic_object_field::exists_(&mut chib.id, name)
+    public fun set_guild_id(chib: &mut Chib, guildId: u64){
+        chib.guildId = guildId;
     }
 
-    public fun get_guild_is_admin(chib: &mut Chib): bool
-    {
-        let name = b"guild_admin_emblem".to_ascii_string();
-        sui::dynamic_object_field::exists_(&mut chib.id, name)
+    public fun add_victory(chib: &mut Chib){
+        chib.victories = chib.victories + 1;
+        check_rank(chib);
+    }
+
+    public fun change_owner(chib: &mut Chib, newOwner: address){
+        chib.owner = newOwner;
+    }
+
+    //Getters
+    public fun get_is_alive(chib: &Chib): bool{
+        chib.state != b"Dead".to_ascii_string()
+    }
+
+    public fun get_have_guild(chib: &Chib): bool{
+        // if in a guild returns true
+        chib.guild.is_some()
+    }
+
+    public fun get_guild_id(chib: &Chib): u64{
+        chib.guildId
+    }
+
+
+    //private
+    fun check_level(chib: &mut Chib){
+        if(chib.xp < 500){
+            chib.lvl = 1;
+            return
+        }else if(chib.xp < 1100){
+            chib.lvl = 2;
+            return
+        }else if(chib.xp < 2200){
+            chib.lvl = 3;
+            return
+        }else if(chib.xp < 3300){
+            chib.lvl = 4;
+            return
+        }else if(chib.xp < 5000){
+            chib.lvl = 5;
+            return
+        }
+    }
+
+    fun check_state(chib: &mut Chib){
+        if(chib.hp > 0 && chib.mana > 0){
+            chib.state = b"Alive".to_ascii_string();
+        }else if(chib.hp > 0 && chib.mana == 0){
+            chib.state = b"Exhausted".to_ascii_string();
+        }else{
+            chib.state = b"Dead".to_ascii_string();
+        }
+    }
+
+    fun check_rank(chib: &mut Chib){
+        if(chib.victories < 3){
+            chib.rank = b"Rookie".to_ascii_string();
+            return
+        }else if(chib.victories < 10) {
+            chib.rank = b"Soldier".to_ascii_string();
+            return
+        }else if(chib.victories < 20){
+            chib.rank = b"General".to_ascii_string();
+            return
+        }
     }
 }
 
