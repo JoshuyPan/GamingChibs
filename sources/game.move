@@ -140,6 +140,7 @@ module chibs::game{
         newMember.set_guild_name(guild.get_guild_name());
     }
 
+    //NOT WORKING TO FIX
     public entry fun figth_eurasia
     (
         admin: &mut GameAdmin,
