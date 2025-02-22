@@ -28,4 +28,15 @@ module chibs::bad_dudes{
     public fun get_atk(bdude: &BadDude): u64{
         bdude.atk
     }
+
+    //Helper
+    public fun destroy_bad_dude(bdude: BadDude){
+        let BadDude{
+            id,
+            name: _,
+            hp: _,
+            atk: _
+        } = bdude;
+        object::delete(id);
+    }
 }

@@ -5,8 +5,8 @@ module chibs::map{
     public struct Map has key, store{
         id: UID,
         name: std::ascii::String,
-        owner: option::Option<chibs::guild::Guild>,
-        tiles: vector<chibs::bad_dudes::BadDude>,
+        owner: std::ascii::String,
+        b_dudes: vector<chibs::bad_dudes::BadDude>,
         isOpen: bool,
         balance: sui::balance::Balance<sui::sui::SUI>
     }
@@ -21,12 +21,46 @@ module chibs::map{
         Map{
             id: sui::object::new(ctx),
             name: b"Eurasia".to_ascii_string(),
-            owner: option::none<chibs::guild::Guild>(),
-            tiles: vector[dude1, dude2],
+            owner: b"None".to_ascii_string(),
+            b_dudes: vector[dude1, dude2],
             isOpen: true,
             balance: sui::balance::zero()
         }
     }
 
-    
+    //getters
+    public fun get_name(map: &Map): std::ascii::String{
+        map.name
+    }
+
+    public fun have_owner(map: &Map): bool{
+        map.owner != b"None".to_ascii_string()
+    }
+
+    public fun get_owner(map: &Map): std::ascii::String{
+        map.owner
+    }
+
+    public fun get_dudes_count(map: &Map): u64{
+        map.b_dudes.length()
+    }
+
+    public fun get_dude(map: &mut Map, index: u64): chibs::bad_dudes::BadDude{
+        map.b_dudes.remove(index)
+    }
+
+    public fun get_map_is_open(map: &Map): bool{
+        map.isOpen
+    }
+
+    //Setters
+    public fun set_owner(map: &mut Map, guildName: std::ascii::String){
+        map.owner = guildName
+    }
+
+    public fun destroy_bad_dude(map: &mut Map, dudeIndex: u64){
+        let dude = map.b_dudes.remove(dudeIndex);
+        dude.destroy_bad_dude()
+    }
+
 }
