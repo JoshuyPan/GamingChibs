@@ -13,6 +13,7 @@ module chibs::chib{
         lvl: u64,
         xp: u64,
         hp: u64,
+        atk: u64,
         mana: u64,
         victories: u64,
         rank: std::ascii::String,
@@ -35,6 +36,7 @@ module chibs::chib{
             lvl: 1,
             xp: 0,
             hp: 500,
+            atk: 100,
             mana: 250,
             victories: 0,
             rank: b"Rookie".to_ascii_string(),
@@ -72,6 +74,18 @@ module chibs::chib{
     public fun lose_mana(chib: &mut Chib, amount: u64){
         chib.mana = chib.mana - amount;
         check_state(chib);
+    }
+
+    public fun set_attack(chib: &mut Chib, amount: u64){
+        chib.atk = amount;
+    }
+
+    public fun add_attack(chib: &mut Chib, amount: u64){
+        chib.atk = chib.atk + amount;
+    }
+
+    public fun decrease_attack(chib: &mut Chib, amount: u64){
+        chib.atk = chib.atk - amount;
     }
 
     public fun set_guild_name(chib: &mut Chib, name: std::ascii::String){
