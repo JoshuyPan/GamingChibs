@@ -45,7 +45,8 @@ module chibs::game{
         transfer::share_object(admin);
     }
     
-    public entry fun register(
+    public entry fun register
+    (
         admin: &mut GameAdmin,
         name: std::ascii::String,
         ctx: &mut TxContext
@@ -61,7 +62,8 @@ module chibs::game{
         //TODO: Add the creation event
     }
 
-    public entry fun register_guild(
+    public entry fun register_guild
+    (
         admin: &mut GameAdmin,
         name: std::ascii::String,
         ctx: &mut TxContext
@@ -96,12 +98,8 @@ module chibs::game{
         admin.guilds.insert(admin.guildsCreated, guild);
     }
 
-    //Start HERE TOMORROW
-    // - sender is admin of the guild
-    // - target is member of the guild
-    // - remove ownership from the sender
-    // - give the ownership to the other one
-    public entry fun transfer_guild_ownership(
+    public entry fun transfer_guild_ownership
+    (
         admin: &mut GameAdmin,
         newGuildAdmin: address,
         ctx: &mut TxContext
@@ -120,7 +118,8 @@ module chibs::game{
         guild.set_new_owner(newGuildAdmin, ctx);
     }
 
-    public entry fun add_guild_member(
+    public entry fun add_guild_member
+    (
         admin: &mut GameAdmin,
         guy: address,
         ctx: &mut TxContext
@@ -140,7 +139,21 @@ module chibs::game{
 
 
     //Getters
-    
+    public fun get_founder(admin: &GameAdmin): address{
+        admin.founder
+    }
+
+    public fun get_chib(admin: &mut GameAdmin, key: &address): &mut chibs::chib::Chib {
+        admin.chibs.get_mut(key)
+    }
+
+    public fun get_guilds_created(admin: &GameAdmin): u64{
+        admin.guildsCreated
+    }
+
+    public fun get_fee(admin: &GameAdmin): u64 {
+        admin.fee
+    }
 
     //Private
 
