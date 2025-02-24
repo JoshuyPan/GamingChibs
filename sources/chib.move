@@ -105,6 +105,11 @@ module chibs::chib{
         chib.owner = newOwner;
     }
 
+    public(package) fun set_no_guild(chib: &mut Chib){
+        let name = b"none".to_ascii_string();
+        chib.set_guild_name(name);
+    }
+
     //Getters
     public fun get_name(chib: &Chib): std::ascii::String {
         chib.name

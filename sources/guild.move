@@ -81,6 +81,17 @@ module chibs::guild{
         guild.members.push_back(newMember);
     }
 
+    public fun remove_member(guild: &mut Guild, member: address, ctx: &mut TxContext){
+        is_admin(guild, ctx);
+        let mut i = 0;
+        while(i < guild.members.length()){
+            if(guild.members[i] == member){
+                guild.members.remove(i);
+            };
+            i = i + 1;
+        };
+    }
+
     //private
     fun is_admin(guild: &Guild, ctx: &mut TxContext){
         let sender = tx_context::sender(ctx);
