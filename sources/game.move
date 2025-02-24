@@ -19,18 +19,24 @@ module chibs::game{
     #[error]
     const EURASIA_IS_CLOSED: u64 = 8;
 
-
+    /// This struct is responsable of all the functionality of the game,
     public struct GameAdmin has key {
         id: UID,
         founder: address,
         guildsCreated: u64,
         chibsCreated: u64,
         bannedAddresses: vector<address>,
-        guilds: sui::table::Table<address, chibs::guild::Guild>,
+        guilds: sui::table::Table<u64, chibs::guild::Guild>,
         chibs: sui::table::Table<address, chibs::chib::Chib>,
         eurasia: chibs::map::Map,
         balance: sui::balance::Balance<sui::sui::SUI>,
         fee: u64
+    }
+
+    // Events
+    public struct ChibCreated has copy, drop{
+        registred_address: address,
+        chib_name: std::ascii::String,
     }
 
     fun init(ctx: &mut TxContext) 
@@ -55,14 +61,74 @@ module chibs::game{
     }
 
     //Entry
-    public entry fun register(admin: &mut GameAdmin, ctx: &mut TxContext){
-        check_is_not_registred(admin, ctx);
-    }
-    
-    //Private
-    fun check_is_not_registred(admin: &mut GameAdmin, ctx: &mut TxContext){
+
+    /// This function is used to register a new Chib and store his mut reference inside the 
+    /// GameAdmin shared obj
+    public entry fun register(admin: &mut GameAdmin, name: std::ascii::String, ctx: &mut TxContext){
+        // the caller of the function, should not be registered yet
         let sender = tx_context::sender(ctx);
+        check_is_not_registred(admin, sender);
+        let chib = chibs::chib::create_chib(name, ctx);
+        admin.chibs.add(sender, chib);
+        admin.chibsCreated = admin.chibsCreated + 1;
+
+        let chibEvent = ChibCreated{
+            registred_address: sender,
+            chib_name: name
+        };
+        sui::event::emit(chibEvent);
+    }
+
+    //This function is used to register a new Guild
+    public entry fun register_guild(admin: &mut GameAdmin, name: std::ascii::String, ctx: &mut TxContext){
+        //check if: sender is registred, have no guild and the guildname is not taken
+        let sender = tx_context::sender(ctx);
+        check_is_registred(admin, sender);
+        check_guild_name_is_not_taken(admin, name);
+        check_address_have_not_guild(admin, sender);
+
+        admin.guildsCreated = admin.guildsCreated + 1;
+        let chib = admin.chibs.borrow_mut(sender);
+        let guild = chibs::guild::create_guild(admin.guildsCreated, name, ctx);
+        admin.guilds.add(admin.guildsCreated, guild);
+        chib.set_guild_id(admin.guildsCreated);
+        chib.set_guild_name(name);
+    }
+
+    // To-do
+    /// add member function
+    /// transfer ownership function
+    /// remove member function
+    /// combat system
+    
+    //Private utility
+    fun check_is_not_registred(admin: &GameAdmin, sender: address){
         let isRegistred = admin.chibs.contains(sender);
         assert!(!isRegistred, ALREADY_REGISTRED);
+    }
+
+    fun check_is_registred(admin: &GameAdmin, sender: address){
+        let isRegistred = admin.chibs.contains(sender);
+        assert!(isRegistred, SHOULD_BE_REGISTRED_FIRST);
+    }
+
+    fun check_guild_name_is_not_taken(admin: &GameAdmin, name: std::ascii::String){
+        let mut i = 1;
+        while(i <= admin.guildsCreated){
+            assert!(name != admin.guilds.borrow(i).get_guild_name(), GUILD_NAME_ALREADY_EXIST);
+            i = i + 1;        
+        }
+    }
+    
+    fun check_address_have_guild(admin: &GameAdmin, sender: address){
+        let chib = admin.chibs.borrow(sender);
+        let haveGuild = chib.get_have_guild();
+        assert!(haveGuild, USER_IS_NOT_GUILD_MEMBER);
+    }
+
+    fun check_address_have_not_guild(admin: &GameAdmin, sender: address){
+        let chib = admin.chibs.borrow(sender);
+        let haveGuild = chib.get_have_guild();
+        assert!(!haveGuild, ALREADY_HAVE_A_GUILD);
     }
 }
