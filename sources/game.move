@@ -18,6 +18,8 @@ module chibs::game{
     const YOU_HAVE_NO_GUILD: u64 = 7;
     #[error]
     const EURASIA_IS_CLOSED: u64 = 8;
+    #[error]
+    const NOT_SAME_GUILD: u64 = 9;
 
     /// This struct is responsable of all the functionality of the game,
     public struct GameAdmin has key {
@@ -110,7 +112,16 @@ module chibs::game{
         admin.guilds.borrow_mut(guildId).add_new_member(newMember, ctx);
     }
 
-    /// transfer ownership function
+    //This function is used to transfer the ownership between the guild members
+    public entry fun transfer_guild_ownership(admin: &mut GameAdmin, newOwner: address, ctx: &mut TxContext){
+        let sender = tx_context::sender(ctx);
+        check_address_have_guild(admin, sender);
+        let chib = admin.chibs.borrow(sender);
+        let guildId = chib.get_guild_id();
+        let guild = admin.guilds.borrow_mut(guildId);
+        assert!(guildId == admin.chibs.borrow(newOwner).get_guild_id(), NOT_SAME_GUILD);
+        guild.set_new_owner(newOwner, ctx);
+    }
     // To-do
     /// remove member function
     /// combat system
