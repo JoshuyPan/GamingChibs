@@ -95,9 +95,23 @@ module chibs::game{
         chib.set_guild_name(name);
     }
 
-    // To-do
-    /// add member function
+    //This function is used to add a member to the guild
+    public entry fun add_member(admin: &mut GameAdmin, newMember: address, ctx: &mut TxContext){
+        let sender = tx_context::sender(ctx);
+        check_address_have_guild(admin, sender);
+        check_address_have_not_guild(admin, newMember);
+        //this is because we can't assign multiple borrow_mut
+        let (guildId, guildName) = {
+            let senderChib = admin.chibs.borrow_mut(sender);
+            (senderChib.get_guild_id(), senderChib.get_guild_name()) 
+        };
+        admin.chibs.borrow_mut(newMember).set_guild_id(guildId);
+        admin.chibs.borrow_mut(newMember).set_guild_name(guildName);
+        admin.guilds.borrow_mut(guildId).add_new_member(newMember, ctx);
+    }
+
     /// transfer ownership function
+    // To-do
     /// remove member function
     /// combat system
     

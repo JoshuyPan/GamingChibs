@@ -17,7 +17,7 @@ module chibs::chib{
         mana: u64,
         victories: u64,
         rank: std::ascii::String,
-        guild: option::Option<std::ascii::String>,
+        guildName: std::ascii::String,
         guildId: u64,
         owner: address, 
     }
@@ -40,7 +40,7 @@ module chibs::chib{
             mana: 250,
             victories: 0,
             rank: b"Rookie".to_ascii_string(),
-            guild: option::none<std::ascii::String>(),
+            guildName: b"none".to_ascii_string(),
             guildId: 0,
             owner: tx_context::sender(ctx)
         }
@@ -89,7 +89,7 @@ module chibs::chib{
     }
 
     public fun set_guild_name(chib: &mut Chib, name: std::ascii::String){
-        chib.guild.fill(name);
+        chib.guildName = name;
     }
 
     public fun set_guild_id(chib: &mut Chib, guildId: u64){
@@ -144,11 +144,19 @@ module chibs::chib{
 
     public fun get_have_guild(chib: &Chib): bool{
         // if in a guild returns true
-        chib.guild.is_some()
+        chib.guildName != b"none".to_ascii_string()
+    }
+
+    public fun get_guild_name(chib: &Chib): std::ascii::String{
+        chib.guildName
     }
 
     public fun get_guild_id(chib: &Chib): u64{
         chib.guildId
+    }
+
+    public fun get_owner(chib: &Chib): address{
+        chib.owner
     }
 
 
