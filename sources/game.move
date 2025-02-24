@@ -120,6 +120,7 @@ module chibs::game{
         let guildId = chib.get_guild_id();
         let guild = admin.guilds.borrow_mut(guildId);
         assert!(guildId == admin.chibs.borrow(newOwner).get_guild_id(), NOT_SAME_GUILD);
+        assert!(guild.get_guild_admin() == sender, YOU_ARE_NOT_GUILD_ADMIN);
         guild.set_new_owner(newOwner, ctx);
     }
     // To-do
