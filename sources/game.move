@@ -26,6 +26,9 @@ module chibs::game{
         guildsCreated: u64,
         chibsCreated: u64,
         bannedAddresses: vector<address>,
+        guilds: sui::table::Table<address, chibs::guild::Guild>,
+        chibs: sui::table::Table<address, chibs::chib::Chib>,
+        eurasia: chibs::map::Map,
         balance: sui::balance::Balance<sui::sui::SUI>,
         fee: u64
     }
@@ -33,6 +36,7 @@ module chibs::game{
     fun init(ctx: &mut TxContext) 
     {
         let sender = tx_context::sender(ctx);
+        let map = chibs::map::instantiate_map(ctx);
 
         let admin = GameAdmin{
             id: object::new(ctx),
@@ -40,12 +44,25 @@ module chibs::game{
             guildsCreated: 0,
             chibsCreated: 0,
             bannedAddresses: vector[],
+            guilds: sui::table::new(ctx),
+            chibs: sui::table::new(ctx),
+            eurasia: map,
             balance: sui::balance::zero<sui::sui::SUI>(),
             fee: 2
         };
 
         transfer::share_object(admin);
     }
-    
 
+    //Entry
+    public entry fun register(admin: &mut GameAdmin, ctx: &mut TxContext){
+        check_is_not_registred(admin, ctx);
+    }
+    
+    //Private
+    fun check_is_not_registred(admin: &mut GameAdmin, ctx: &mut TxContext){
+        let sender = tx_context::sender(ctx);
+        let isRegistred = admin.chibs.contains(sender);
+        assert!(!isRegistred, ALREADY_REGISTRED);
+    }
 }
