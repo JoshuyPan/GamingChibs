@@ -14,6 +14,7 @@ module chibs::chib{
         xp: u64,
         hp: u64,
         atk: u64,
+        df: u64,
         mana: u64,
         victories: u64,
         rank: std::ascii::String,
@@ -36,7 +37,8 @@ module chibs::chib{
             lvl: 1,
             xp: 0,
             hp: 500,
-            atk: 100,
+            atk: 20,
+            df: 5,
             mana: 250,
             victories: 0,
             rank: b"Rookie".to_ascii_string(),
@@ -78,6 +80,10 @@ module chibs::chib{
 
     public fun set_attack(chib: &mut Chib, amount: u64){
         chib.atk = amount;
+    }
+
+    public fun add_defence(chib: &mut Chib, amount: u64){
+        chib.df = chib.df + amount;
     }
 
     public fun add_attack(chib: &mut Chib, amount: u64){
@@ -130,7 +136,7 @@ module chibs::chib{
     }
 
     public fun get_hp(chib: &Chib): u64{
-        chib.xp
+        chib.hp
     }
 
     public fun get_mana(chib: &Chib): u64{
@@ -143,6 +149,10 @@ module chibs::chib{
 
     public fun get_attack(chib: &Chib): u64{
         chib.atk
+    }
+
+    public fun get_defence(chib: &Chib):u64{
+        chib.df
     }
 
     public fun get_rank(chib: &Chib): std::ascii::String{
@@ -198,13 +208,13 @@ module chibs::chib{
     }
 
     public(package) fun check_rank(chib: &mut Chib){
-        if(chib.victories < 3){
+        if(chib.victories < 50){
             chib.rank = b"Rookie".to_ascii_string();
             return
-        }else if(chib.victories < 10) {
+        }else if(chib.victories < 500) {
             chib.rank = b"Soldier".to_ascii_string();
             return
-        }else if(chib.victories < 20){
+        }else if(chib.victories < 5000){
             chib.rank = b"General".to_ascii_string();
             return
         }

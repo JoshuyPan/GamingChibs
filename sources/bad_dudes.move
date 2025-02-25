@@ -5,14 +5,16 @@ module chibs::bad_dudes{
         name: std::ascii::String,
         hp: u64,
         atk: u64,
+        df: u64
     }
 
-    public fun create_bad_dude(name: std::ascii::String, hp: u64, atk: u64, ctx: &mut TxContext): BadDude{
+    public fun create_bad_dude(name: std::ascii::String, hp: u64, atk: u64, df: u64, ctx: &mut TxContext): BadDude{
         BadDude{
             id: object::new(ctx),
             name,
             hp,
-            atk
+            atk,
+            df
         }
     }
 
@@ -29,6 +31,10 @@ module chibs::bad_dudes{
         bdude.atk
     }
 
+    public fun get_df(bdude: &BadDude): u64{
+        bdude.df
+    }
+
     //Setters
     public fun lose_hp(bdude: &mut BadDude, amount: u64){
         bdude.hp = bdude.hp - amount;
@@ -40,7 +46,8 @@ module chibs::bad_dudes{
             id,
             name: _,
             hp: _,
-            atk: _
+            atk: _,
+            df: _
         } = bdude;
         object::delete(id);
     }
