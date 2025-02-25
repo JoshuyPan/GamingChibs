@@ -151,6 +151,8 @@ module chibs::game{
         check_address_have_guild(admin, sender);
         let chib = admin.chibs.borrow_mut(sender);
         let bDude = chibs::bad_dudes::create_bad_dude(b"DireWolf".to_ascii_string(), 100, 10, 3, ctx);
+        let isAlive = chib.get_is_alive();
+        assert!(isAlive, YOU_ARE_DEAD);
         fight(chib, bDude);
     }
     
