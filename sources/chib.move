@@ -107,7 +107,9 @@ module chibs::chib{
 
     public(package) fun set_no_guild(chib: &mut Chib){
         let name = b"none".to_ascii_string();
+        let guildId = 0;
         chib.set_guild_name(name);
+        chib.set_guild_id(guildId);
     }
 
     //Getters

@@ -20,6 +20,8 @@ module chibs::game{
     const EURASIA_IS_CLOSED: u64 = 8;
     #[error]
     const NOT_SAME_GUILD: u64 = 9;
+    #[error]
+    const YOU_CANT_UNGUILD_YOUSELF: u64 = 10;
 
     /// This struct is responsable of all the functionality of the game,
     public struct GameAdmin has key {
@@ -128,6 +130,7 @@ module chibs::game{
     public entry fun remove_member(admin: &mut GameAdmin, member: address, ctx: &mut TxContext){
         let sender = tx_context::sender(ctx);
         check_address_have_guild(admin, sender);
+        assert!(sender != member, YOU_CANT_UNGUILD_YOUSELF);
         assert!(admin.chibs.borrow(sender).get_guild_id() == admin.chibs.borrow_mut(member).get_guild_id(), NOT_SAME_GUILD);
         let guild = admin.guilds.borrow_mut(admin.chibs.borrow(sender).get_guild_id());
         guild.remove_member(member, ctx);
