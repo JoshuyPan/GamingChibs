@@ -17,7 +17,7 @@ module chibs::game{
     #[error]
     const YOU_ARE_DEAD: u64 = 7;
     #[error]
-    const EURASIA_IS_CLOSED: u64 = 8;
+    const YOU_ARE_ALIVE: u64 = 8;
     #[error]
     const NOT_SAME_GUILD: u64 = 9;
     #[error]
@@ -142,8 +142,9 @@ module chibs::game{
         guild.remove_member(member, ctx);
         admin.chibs.borrow_mut(member).set_no_guild();
     }
-    /// combat system
-    //Instanciate map
+
+    //COMBAT
+    //This function is used to interact with the first mob "DireWolf"
     public entry fun fight_dire_wolf(admin: &mut GameAdmin, ctx: &mut TxContext){
         let sender = tx_context::sender(ctx);
         check_address_is_banned(admin, sender);
@@ -151,9 +152,20 @@ module chibs::game{
         check_address_have_guild(admin, sender);
         let chib = admin.chibs.borrow_mut(sender);
         let bDude = chibs::bad_dudes::create_bad_dude(b"DireWolf".to_ascii_string(), 100, 10, 3, ctx);
+        chib.check_state();
         let isAlive = chib.get_is_alive();
         assert!(isAlive, YOU_ARE_DEAD);
         fight(chib, bDude);
+    }
+
+    //This Function is used to revive a Chib
+    public entry fun revive_chib(admin: &mut GameAdmin, ctx: &mut TxContext){
+        let sender = tx_context::sender(ctx);
+        check_address_is_banned(admin, sender);
+        let chib = admin.chibs.borrow_mut(sender);
+        let isAlive = chib.get_is_alive();
+        assert!(!isAlive, YOU_ARE_ALIVE);
+        chib.gain_hp(500);
     }
     
     //Private utility
